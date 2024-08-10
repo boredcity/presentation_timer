@@ -11,18 +11,30 @@ class Slide {
   final Color toColor;
 
   Slide(
-      {this.name = 'Unnamed Slide',
+      {String? id,
+      this.name = 'Unnamed Slide',
       this.duration = const Duration(seconds: 30),
       this.fromColor = Colors.white,
       this.toColor = Colors.grey})
-      : id = _uuid.v4();
+      : id = id ?? _uuid.v4();
 
-  Slide.fromJson(Map<String, dynamic> json)
-      : id = json['id'],
-        name = json['name'],
-        duration = Duration(seconds: json['durationInSeconds']),
-        fromColor = Color(json['fromColor']),
-        toColor = Color(json['toColor']);
+  static Slide fromJson(Map<String, dynamic> json) => switch (json) {
+        {
+          'id': String id,
+          'name': String name,
+          'durationInSeconds': int durationInSeconds,
+          'fromColor': int fromColor,
+          'toColor': int toColor
+        } =>
+          Slide(
+            id: id,
+            name: name,
+            duration: Duration(seconds: durationInSeconds),
+            fromColor: Color(fromColor),
+            toColor: Color(toColor),
+          ),
+        _ => throw ArgumentError.value(json, 'json', 'Invalid Slide JSON'),
+      };
 
   Map<String, dynamic> toJson() => {
         'id': id,

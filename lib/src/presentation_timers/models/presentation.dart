@@ -19,10 +19,17 @@ class Presentation {
 
   Presentation({id, this.name = 'Unnamed Presentation', this.slides = const []}) : id = id ?? _uuid.v4();
 
-  Presentation.fromJson(Map<String, dynamic> json)
-      : id = json['id'],
-        name = json['name'],
-        slides = List<Slide>.from(json['slides'].map((x) => Slide.fromJson(x)));
+  static Presentation fromJson(Map<String, dynamic> json) {
+    return switch (json) {
+      {'id': String id, 'name': String name, 'slides': List<dynamic> slides} => Presentation(
+          id: id,
+          name: name,
+          slides: List.from(slides.map((x) => Slide.fromJson(x))),
+        ),
+      _ => throw ArgumentError.value(json, 'json', 'Invalid Presentation JSON'),
+    };
+  }
+
 
   Map<String, dynamic> toJson() => {
         'id': id,
