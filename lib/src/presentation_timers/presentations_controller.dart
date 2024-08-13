@@ -26,6 +26,12 @@ class PresentationsController with ChangeNotifier {
     await _presentationsService.updatePresentations(_presentations);
   }
 
+  Future<void> removePresentation(String presentationId) async {
+    _presentations = _presentations.where((x) => x.id != presentationId).toList();
+    notifyListeners();
+    await _presentationsService.updatePresentations(_presentations);
+  }
+
   Future<void> createPresentation(Presentation newPresentation) async {
     _presentations.add(newPresentation);
     notifyListeners();

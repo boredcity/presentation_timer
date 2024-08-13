@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:math';
 
 import 'package:flutter/material.dart';
+import 'package:presentation_timer/src/presentation_timers/create_slide_with_name_and_time_dialog.dart';
 import 'package:presentation_timer/src/presentation_timers/models/presentation.dart';
 import 'package:presentation_timer/src/presentation_timers/presentations_controller.dart';
 import 'package:presentation_timer/src/presentation_timers/timer_slide.dart';
@@ -26,15 +27,24 @@ class PresentationView extends StatefulWidget {
 
 class _PresentationViewState extends State<PresentationView> with SingleTickerProviderStateMixin {
   final Map<String, int> _timePassedBySlide = {};
-  late Slide? _currentSlide;
   int _secondsPassed = 0;
   Timer? _timer;
   final PageController _pageController = PageController(initialPage: 0);
 
+  late Slide? _currentSlide;
+
   @override
   void initState() {
     super.initState();
-    _currentSlide = widget.presentation.slides.isEmpty ? null : widget.presentation.slides[0];
+    _currentSlide = widget.presentation.slides[_pageController.initialPage];
+    _pageController.addListener(() {
+      final currentIndex = _pageController.page?.toInt();
+      if (!(currentIndex == null || currentIndex >= widget.presentation.slides.length)) {
+        setState(() {
+          _currentSlide = widget.presentation.slides[currentIndex];
+        });
+      }
+    });
   }
 
   void _createTimer() {
@@ -44,7 +54,6 @@ class _PresentationViewState extends State<PresentationView> with SingleTickerPr
       (timer) => setState(
         () {
           _secondsPassed++;
-
           final currentSlideIdLocal = _currentSlide;
           if (currentSlideIdLocal != null) {
             _timePassedBySlide.update(currentSlideIdLocal.id, (val) => val + 1, ifAbsent: () => 1);
@@ -58,6 +67,19 @@ class _PresentationViewState extends State<PresentationView> with SingleTickerPr
   void dispose() {
     _timer?.cancel();
     super.dispose();
+  }
+
+  Future<void> _displayTextInputDialog(BuildContext context, PresentationsController controller) async {
+    return showDialog(
+      context: context,
+      builder: (context) {
+        return CreateSlideWithNameAndTimeDialog(onCreateSlide: (name, duration) async {
+          final presentation = widget.presentation
+              .copyWith(slides: [...widget.presentation.slides, Slide(name: name, duration: duration)]);
+          await controller.updatePresentation(presentation);
+        });
+      },
+    );
   }
 
   @override
@@ -108,7 +130,6 @@ class _PresentationViewState extends State<PresentationView> with SingleTickerPr
                                 _secondsPassed = 0;
                                 _timer?.cancel();
                                 _timePassedBySlide.clear();
-                                _currentSlide = widget.presentation.slides.firstOrNull;
                               });
                               _pageController.animateToPage(0,
                                   duration: const Duration(milliseconds: 300), curve: Curves.easeInOut);
@@ -117,7 +138,6 @@ class _PresentationViewState extends State<PresentationView> with SingleTickerPr
                               if (_timer?.isActive != true) {
                                 _createTimer();
                               } else if (!isLastSlideShown) {
-                                _currentSlide = nextSlide;
                                 _pageController.animateToPage(_pageController.page!.toInt() + 1,
                                     duration: const Duration(milliseconds: 300), curve: Curves.easeInOut);
                               } else {
@@ -142,14 +162,7 @@ class _PresentationViewState extends State<PresentationView> with SingleTickerPr
                   IconButton(
                     icon: const Icon(Icons.add_box_outlined),
                     onPressed: () async {
-                      await PresentationsController.of(context).updatePresentation(
-                        widget.presentation.copyWith(slides: [...widget.presentation.slides, Slide()]),
-                      );
-                      if (_currentSlide == null) {
-                        setState(() {
-                          _currentSlide = widget.presentation.slides.firstOrNull;
-                        });
-                      }
+                      _displayTextInputDialog(context, PresentationsController.of(context));
                     },
                   ),
                 ],

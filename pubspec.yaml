@@ -10,6 +10,7 @@ environment:
   sdk: ^3.5.0
 
 dependencies:
+  duration_picker: ^1.2.0
   flutter:
     sdk: flutter
   flutter_localizations:
