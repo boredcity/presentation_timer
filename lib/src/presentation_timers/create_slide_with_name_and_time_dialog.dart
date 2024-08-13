@@ -31,6 +31,7 @@ class _CreateSlideWithNameAndTimeDialogState extends State<CreateSlideWithNameAn
     return AlertDialog(
       title: const Text('Add Slide'),
       content: Column(
+        mainAxisSize: MainAxisSize.min,
         children: [
           TextField(
             controller: _textFieldController,
@@ -38,7 +39,8 @@ class _CreateSlideWithNameAndTimeDialogState extends State<CreateSlideWithNameAn
           ),
           DurationPicker(
             lowerBound: const Duration(seconds: 5),
-            upperBound: const Duration(minutes: 59, seconds: 59),
+            upperBound: const Duration(minutes: 9, seconds: 59),
+            baseUnit: BaseUnit.second,
             duration: _duration,
             onChange: (val) {
               setState(() => _duration = val);
